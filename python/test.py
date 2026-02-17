@@ -1,10 +1,12 @@
-# ----------------------------
-# Map Coloring using CSP (Backtracking)
-# ----------------------------
+# ==========================================================
+# MAP COLORING CSP (BEGINNER VERSION)
+# Basic Backtracking Search (no heuristics, no forward checking)
+# ==========================================================
 
 def is_valid(region, color, assignment, neighbors):
     """
-    Check: region can't have same color as any already-colored neighbor.
+    Rule: A region cannot have the same color as any of its neighbors.
+    assignment = {region: color}
     """
     for nb in neighbors[region]:
         if nb in assignment and assignment[nb] == color:
@@ -12,37 +14,41 @@ def is_valid(region, color, assignment, neighbors):
     return True
 
 
-def solve_map_coloring(regions, colors, neighbors):
+def solve_map_coloring_beginner(regions, colors, neighbors):
     """
-    Backtracking solver.
-    Returns a dictionary: {region: color}
+    Beginner CSP solver using simple backtracking.
+    Returns: dictionary {region: color} or None if no solution.
     """
-
     assignment = {}
 
     def backtrack():
-        # If all regions are colored, done
+        # 1) If all regions are colored, we are done
         if len(assignment) == len(regions):
             return True
 
-        # Pick the next uncolored region
+        # 2) Pick the next uncolored region (first one found)
         for r in regions:
             if r not in assignment:
                 region = r
                 break
 
-        # Try each color
+        # 3) Try each color for this region
         for color in colors:
+            # 4) Check if this color is allowed (no neighbor conflict)
             if is_valid(region, color, assignment, neighbors):
-                assignment[region] = color   # choose
+                assignment[region] = color  # choose
 
-                if backtrack():              # explore
+                # 5) Try to color the rest
+                if backtrack():
                     return True
 
-                del assignment[region]       # undo (backtrack)
+                # 6) If it failed later, undo and try another color
+                del assignment[region]
 
+        # 7) No color worked for this region
         return False
 
+    # Start backtracking
     if backtrack():
         return assignment
     return None
@@ -51,21 +57,20 @@ def solve_map_coloring(regions, colors, neighbors):
 # ----------------------------
 # Example: Australia Map
 # ----------------------------
+if __name__ == "__main__":
+    regions = ["WA", "NT", "SA", "Q", "NSW", "V", "T"]
+    colors = ["Red", "Green", "Blue"]
 
-regions = ["WA", "NT", "SA", "Q", "NSW", "V", "T"]
-colors = ["Red", "Green", "Blue"]
+    neighbors = {
+        "WA":  ["NT", "SA"],
+        "NT":  ["WA", "SA", "Q"],
+        "SA":  ["WA", "NT", "Q", "NSW", "V"],
+        "Q":   ["NT", "SA", "NSW"],
+        "NSW": ["Q", "SA", "V"],
+        "V":   ["SA", "NSW"],
+        "T":   []  # Tasmania has no neighbors in this example
+    }
 
-neighbors = {
-    "WA":  ["NT", "SA"],
-    "NT":  ["WA", "SA", "Q"],
-    "SA":  ["WA", "NT", "Q", "NSW", "V"],
-    "Q":   ["NT", "SA", "NSW"],
-    "NSW": ["Q", "SA", "V"],
-    "V":   ["SA", "NSW"],
-    "T":   []  # Tasmania has no neighbor in this simple example
-}
-
-solution = solve_map_coloring(regions, colors, neighbors)
-
-print("✅ Solution:")
-print(solution)
+    solution = solve_map_coloring_beginner(regions, colors, neighbors)
+    print("✅ Beginner Solution:")
+    print(solution)
